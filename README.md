@@ -1,1 +1,1 @@
-"# Internet Battleship" 
+# Internet Battleship
