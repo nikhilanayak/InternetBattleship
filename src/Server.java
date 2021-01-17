@@ -8,9 +8,11 @@ import java.net.Socket;
 
 public class Server{
 
+    // The server socket
     ServerSocket socket;
 
 
+    // The client sockets and their writers/readers
     Socket clientA = null;
     Socket clientB = null;
     
@@ -20,7 +22,6 @@ public class Server{
     DataInputStream readerA = null;
     DataInputStream readerB = null;
 
-    boolean running = true;
 
 
     /**
