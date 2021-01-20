@@ -40,6 +40,15 @@ public class Client implements ActionListener, MouseListener {
 
     Container west;
 
+    enum GameState{
+        READYUP,
+        SETSHIPS,
+        BATTLE,
+        GAMEOVER,
+    }
+
+    GameState gameState = GameState.READYUP;
+
 
     /**
      * The entry point of the program. Creates a new instance of client
@@ -80,7 +89,6 @@ public class Client implements ActionListener, MouseListener {
         frame.add(west, BorderLayout.WEST);
 
 
-
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
 
@@ -95,17 +103,19 @@ public class Client implements ActionListener, MouseListener {
      */
     @Override
     public void actionPerformed(ActionEvent event){
-
-        if(event.getSource().equals(readyUpButton)) {
-            readiedUp = !readiedUp;
-            if(readiedUp){
-                readyUpButton.setBackground(Color.GREEN);
-                readyUpButton.setText("Cancel Ready Up");
-            }else{
-                readyUpButton.setBackground(Color.RED);
-                readyUpButton.setText("Ready Up");
+        if(gameState == GameState.READYUP) {
+            if (event.getSource().equals(readyUpButton)) {
+                readiedUp = !readiedUp;
+                if (readiedUp) {
+                    readyUpButton.setBackground(Color.GREEN);
+                    readyUpButton.setText("Cancel Ready Up");
+                } else {
+                    readyUpButton.setBackground(Color.RED);
+                    readyUpButton.setText("Ready Up");
+                }
             }
         }
+
     }
 
     /**
@@ -135,7 +145,26 @@ public class Client implements ActionListener, MouseListener {
 
         while(running) {
             try{
-                System.out.println(in.readUTF());
+                if(in.available() > 0){
+                    String message = in.readUTF();
+                    switch(message){
+                        case "SETSHIPS":
+                            gameState = GameState.SETSHIPS;
+                            break;
+
+                    }
+                }
+                //let server know if readied up
+                if(readiedUp && readyUpButton.isEnabled()){
+                    out.writeUTF("READY");
+                }
+                if (!readiedUp && readyUpButton.isEnabled()){
+                    out.writeUTF("NOTREADY");
+                }
+
+                if(gameState != GameState.READYUP){
+                    readyUpButton.setEnabled(false);
+                }
             }
             catch(IOException exception){
                 exception.printStackTrace();
@@ -172,45 +201,47 @@ public class Client implements ActionListener, MouseListener {
      */
     @Override
     public void mousePressed(MouseEvent e) {
-        if(!firstClick) {
-            startingX = Math.min(panel.cells.length - 1, (int) (e.getX() / (panel.getWidth() / Renderer.BOARD_SIZE)));
-            startingY = Math.min(panel.cells[0].length - 1, (int) (e.getY() / (panel.getHeight() / Renderer.BOARD_SIZE)));
+        if(gameState == GameState.SETSHIPS) {
+            if (!firstClick) {
+                startingX = Math.min(panel.cells.length - 1, (int) (e.getX() / (panel.getWidth() / Renderer.BOARD_SIZE)));
+                startingY = Math.min(panel.cells[0].length - 1, (int) (e.getY() / (panel.getHeight() / Renderer.BOARD_SIZE)));
 
-            panel.cells[startingX][startingY] = true;
+                panel.cells[startingX][startingY] = true;
 
-            firstClick = true;
-        }
-        else{
-            int endingX = Math.min(panel.cells.length - 1, (int) (e.getX() / (panel.getWidth() / Renderer.BOARD_SIZE)));
-            int endingY = Math.min(panel.cells[0].length - 1, (int) (e.getY() / (panel.getHeight() / Renderer.BOARD_SIZE)));
+                firstClick = true;
+            } else {
+                int endingX = Math.min(panel.cells.length - 1, (int) (e.getX() / (panel.getWidth() / Renderer.BOARD_SIZE)));
+                int endingY = Math.min(panel.cells[0].length - 1, (int) (e.getY() / (panel.getHeight() / Renderer.BOARD_SIZE)));
 
-            if(startingY == endingY && shipLengths.contains(Math.abs(endingX - startingX) + 1)) {
-                    shipLengths.remove((Integer) Math.abs(endingX - startingX + 1) );
-                    for(int i = Math.min(endingX, startingX); i <= Math.max(endingX, startingX); i++){
+                if (startingY == endingY && shipLengths.contains(Math.abs(endingX - startingX) + 1)) {
+                    shipLengths.remove((Integer) Math.abs(endingX - startingX + 1));
+                    for (int i = Math.min(endingX, startingX); i <= Math.max(endingX, startingX); i++) {
                         panel.cells[i][endingY] = true;
                     }
                     frame.repaint();
-                    if(!shipLengths.isEmpty()) JOptionPane.showMessageDialog(frame, "Add another ship of length: " + shipLengths.toString());
-                    panel.shipPositions.add(new Rectangle(Math.min(endingX, startingX) , startingY , Math.abs(endingX - startingX) + 1, 1));
+                    if (!shipLengths.isEmpty())
+                        JOptionPane.showMessageDialog(frame, "Add another ship of length: " + shipLengths.toString());
+                    panel.shipPositions.add(new Rectangle(Math.min(endingX, startingX), startingY, Math.abs(endingX - startingX) + 1, 1));
 
-            }
-            else if(startingX == endingX && shipLengths.contains(Math.abs(endingY - startingY) + 1)){
+                } else if (startingX == endingX && shipLengths.contains(Math.abs(endingY - startingY) + 1)) {
                     shipLengths.remove((Integer) Math.abs(endingY - startingY + 1));
-                    for(int i = Math.min(endingY, startingY); i <= Math.max(endingY, startingY); i++){
+                    for (int i = Math.min(endingY, startingY); i <= Math.max(endingY, startingY); i++) {
                         panel.cells[endingX][i] = true;
                     }
                     frame.repaint();
-                    if(!shipLengths.isEmpty()) JOptionPane.showMessageDialog(frame, "Add another ship of length: " + shipLengths.toString());
-                    panel.shipPositions.add(new Rectangle( startingX, Math.min(endingY, startingY ),  1 ,  Math.abs(endingY - startingY) + 1));
-            }
-            else{
-                panel.cells[startingX][startingY] = false;
-                if(!shipLengths.isEmpty()) JOptionPane.showMessageDialog(frame, "Invalid - Add another ship of length: " + shipLengths.toString());
-            }
+                    if (!shipLengths.isEmpty())
+                        JOptionPane.showMessageDialog(frame, "Add another ship of length: " + shipLengths.toString());
+                    panel.shipPositions.add(new Rectangle(startingX, Math.min(endingY, startingY), 1, Math.abs(endingY - startingY) + 1));
+                } else {
+                    panel.cells[startingX][startingY] = false;
+                    if (!shipLengths.isEmpty())
+                        JOptionPane.showMessageDialog(frame, "Invalid - Add another ship of length: " + shipLengths.toString());
+                }
 
-            firstClick = false;
+                firstClick = false;
+            }
+            frame.repaint();
         }
-        frame.repaint();
     }
 
 

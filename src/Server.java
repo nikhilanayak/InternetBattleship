@@ -22,6 +22,17 @@ public class Server{
     DataInputStream readerA = null;
     DataInputStream readerB = null;
 
+    //boolean readied up
+    boolean readyA = false;
+    boolean readyB = false;
+
+    enum GameState{
+        READYUP,
+        SETSHIPS,
+        BATTLE,
+        GAMEOVER,
+    }
+
 
 
     /**
@@ -53,16 +64,43 @@ public class Server{
         readerB = new DataInputStream((clientB.getInputStream()));
         System.out.println("accepted client b");
 
+        GameState gameState = GameState.READYUP;
+
         while(true){
             try {
                 if(readerA.available() > 0){
                     String messageA = readerA.readUTF();
-                    writerA.writeUTF("you said: " + messageA);
+                    //is the player readied up?
+                    switch(messageA){
+                        case "READY":
+                            readyA = true;
+                            break;
+                        case "NOTREADY":
+                            readyA = false;
+                            break;
+
+                    }
                 }
                 if(readerB.available() > 0){
                     String messageB = readerB.readUTF();
-                    writerB.writeUTF("you said: " + messageB);
+                    //is the player readied up?
+                    switch(messageB){
+                        case "READY":
+                            readyB = true;
+                            break;
+                        case "NOTREADY":
+                            readyB = false;
+                            break;
+
+                    }
                 }
+                //if both readied up then let them set ships
+                if(readyA && readyB){
+                    gameState = GameState.SETSHIPS;
+                    writerA.writeUTF("SETSHIPS");
+                    writerB.writeUTF("SETSHIPS");
+                }
+
             }
             catch(IOException e){
                 System.out.println("IO Error: " + e.toString());
