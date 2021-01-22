@@ -99,6 +99,8 @@ public class Server{
                     gameState = GameState.SETSHIPS;
                     writerA.writeUTF("SETSHIPS");
                     writerB.writeUTF("SETSHIPS");
+                    readyB = false;
+                    readyA = false;
                 }
 
             }
