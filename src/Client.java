@@ -19,6 +19,11 @@ public class Client implements ActionListener, MouseListener {
     ArrayList<Integer> shipLengths = new ArrayList<Integer>();
 
 
+    JTextField guessText = new JTextField("Enter a coordinate (e.g. A1)");
+    JLabel hitBox = new JLabel("Hits: ");
+    JLabel missBox = new JLabel("Misses: ");
+
+
     boolean firstClick = false;
 
     int startingX = 0;
@@ -70,11 +75,14 @@ public class Client implements ActionListener, MouseListener {
         west = new Container();
         west.setLayout(new GridLayout(4, 1));
         west.add(readyUpButton);
+        west.add(guessText);
+        guessText.setEnabled(false);
+        west.add(hitBox);
+        west.add(missBox);
 
 
         shipLengths.add(5);
         shipLengths.add(4);
-        shipLengths.add(3);
         shipLengths.add(3);
         shipLengths.add(2);
 
@@ -124,8 +132,17 @@ public class Client implements ActionListener, MouseListener {
                     readyUpButton.setText("Ready Up");
                 }
             }
+        } if(gameState == GameState.BATTLE){
+            if(event.getSource().equals(guessText)){
+
+            }
         }
 
+    }
+
+    public void guess(){
+        JOptionPane.showMessageDialog(frame, "Your Turn!");
+        guessText.setEnabled(true);
     }
 
     /**
@@ -160,6 +177,13 @@ public class Client implements ActionListener, MouseListener {
                         case "SETSHIPS":
                             gameState = GameState.SETSHIPS;
                             JOptionPane.showMessageDialog(frame, "Both Players Ready. Set Your Ships!");
+                            break;
+                        case "BATTLE":
+                            gameState = GameState.BATTLE;
+                            JOptionPane.showMessageDialog(frame, "Battle!");
+                            break;
+                        case "YOURTURN":
+                            guess();
                             break;
 
                     }
@@ -235,6 +259,11 @@ public class Client implements ActionListener, MouseListener {
                         shipLengths.remove((Integer) Math.abs(endingX - startingX + 1));
                         for (int i = Math.min(endingX, startingX); i <= Math.max(endingX, startingX); i++) {
                             panel.cells[i][endingY] = true;
+                            try {
+                                out.writeUTF("- " + i + " " + endingY + " " +  Math.abs(endingX - startingX + 1));
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
                         }
                         frame.repaint();
                         if (!shipLengths.isEmpty())
@@ -257,6 +286,11 @@ public class Client implements ActionListener, MouseListener {
                         shipLengths.remove((Integer) Math.abs(endingY - startingY + 1));
                         for (int i = Math.min(endingY, startingY); i <= Math.max(endingY, startingY); i++) {
                             panel.cells[endingX][i] = true;
+                            try {
+                                out.writeUTF("- " + endingX + " " + i + " " +  Math.abs(endingY - startingY + 1));
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
                         }
                         frame.repaint();
                         if (!shipLengths.isEmpty())
@@ -272,9 +306,20 @@ public class Client implements ActionListener, MouseListener {
 
                 firstClick = false;
             }
+
+            if(shipLengths.isEmpty()){
+                try {
+                    out.writeUTF("DONESETSHIPS");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
             frame.repaint();
         }
     }
+
+
+
 
 
     /**

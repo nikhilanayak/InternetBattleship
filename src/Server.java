@@ -5,11 +5,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.StringTokenizer;
 
 public class Server{
 
     // The server socket
     ServerSocket socket;
+
 
 
     // The client sockets and their writers/readers
@@ -26,11 +28,25 @@ public class Server{
     boolean readyA = false;
     boolean readyB = false;
 
+    boolean setShipsA = false;
+    boolean setShipsB = false;
+
+    int[][] boardA = new int[10][10];
+    int[][] boardB = new int[10][10];
+
+    StringTokenizer st;
+
     enum GameState{
         READYUP,
         SETSHIPS,
         BATTLE,
         GAMEOVER,
+    }
+
+    enum TurnStatus{
+        PlayerA,
+        PlayerB,
+        WAITING
     }
 
 
@@ -65,11 +81,18 @@ public class Server{
         System.out.println("accepted client b");
 
         GameState gameState = GameState.READYUP;
+        TurnStatus turnStatus = TurnStatus.PlayerA;
 
         while(true){
             try {
                 if(readerA.available() > 0){
                     String messageA = readerA.readUTF();
+
+                    if(messageA.charAt(0) == '-'){
+                        String[] coordinates = messageA.split(" ");
+                        boardA[Integer.parseInt(coordinates[1])][Integer.parseInt(coordinates[2])] = Integer.parseInt(coordinates[3]);
+                        System.out.println(Integer.parseInt(coordinates[1]) + ", " + Integer.parseInt(coordinates[2]) + "=" + Integer.parseInt(coordinates[3]));
+                    }
                     //is the player readied up?
                     switch(messageA){
                         case "READY":
@@ -78,11 +101,19 @@ public class Server{
                         case "NOTREADY":
                             readyA = false;
                             break;
-
+                        case "DONESETSHIPS":
+                            setShipsA = true;
+                            break;
                     }
                 }
                 if(readerB.available() > 0){
                     String messageB = readerB.readUTF();
+
+                    if(messageB.charAt(0) == '-'){
+                        String[] coordinates = messageB.split(" ");
+                        boardB[Integer.parseInt(coordinates[1])][Integer.parseInt(coordinates[2])] = Integer.parseInt(coordinates[3]);
+                        System.out.println(Integer.parseInt(coordinates[1]) + ", " + Integer.parseInt(coordinates[2]) + "=" + Integer.parseInt(coordinates[3]));
+                    }
                     //is the player readied up?
                     switch(messageB){
                         case "READY":
@@ -90,6 +121,9 @@ public class Server{
                             break;
                         case "NOTREADY":
                             readyB = false;
+                            break;
+                        case "DONESETSHIPS":
+                            setShipsB = true;
                             break;
 
                     }
@@ -103,6 +137,24 @@ public class Server{
                     readyA = false;
                 }
 
+                if(setShipsB && setShipsA){
+                    gameState = GameState.BATTLE;
+                    writerA.writeUTF("BATTLE");
+                    writerB.writeUTF("BATTLE");
+                    setShipsA = false;
+                    setShipsB = false;
+                }
+
+                if(gameState == GameState.BATTLE){
+                    if(turnStatus == TurnStatus.PlayerA){
+                        writerA.writeUTF("YOURTURN");
+                        turnStatus = TurnStatus.WAITING;
+                    } else if(turnStatus == TurnStatus.PlayerB){
+                        writerB.writeUTF("YOURTURN");
+                        turnStatus = TurnStatus.WAITING;
+                    }
+                }
+
             }
             catch(IOException e){
                 System.out.println("IO Error: " + e.toString());
@@ -110,6 +162,8 @@ public class Server{
             }
         }
     }
+
+
 
     public static void main(String[] args) throws IOException {
         Server server = new Server();
