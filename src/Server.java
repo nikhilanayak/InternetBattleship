@@ -93,6 +93,19 @@ public class Server{
                         boardA[Integer.parseInt(coordinates[1])][Integer.parseInt(coordinates[2])] = Integer.parseInt(coordinates[3]);
                         System.out.println(Integer.parseInt(coordinates[1]) + ", " + Integer.parseInt(coordinates[2]) + "=" + Integer.parseInt(coordinates[3]));
                     }
+
+                    if(messageA.charAt(0) == '+'){
+                        String[] guess = messageA.split(" ");
+                        if(boardB[Integer.parseInt(guess[1])][Integer.parseInt(guess[2])] > 0){
+                            writerA.writeUTF("HIT");
+                        }
+                        else if(boardB[Integer.parseInt(guess[1])][Integer.parseInt(guess[2])] < 0){
+                            writerA.writeUTF("INVALID");
+                        } else if(boardB[Integer.parseInt(guess[1])][Integer.parseInt(guess[2])] == 0){
+                            writerA.writeUTF("MISS");
+                        }
+                    }
+
                     //is the player readied up?
                     switch(messageA){
                         case "READY":
@@ -113,6 +126,18 @@ public class Server{
                         String[] coordinates = messageB.split(" ");
                         boardB[Integer.parseInt(coordinates[1])][Integer.parseInt(coordinates[2])] = Integer.parseInt(coordinates[3]);
                         System.out.println(Integer.parseInt(coordinates[1]) + ", " + Integer.parseInt(coordinates[2]) + "=" + Integer.parseInt(coordinates[3]));
+                    }
+
+                    if(messageB.charAt(0) == '+'){
+                        String[] guess = messageB.split(" ");
+                        if(boardA[Integer.parseInt(guess[1])][Integer.parseInt(guess[2])] > 0){
+                            writerB.writeUTF("HIT");
+                        }
+                        else if(boardA[Integer.parseInt(guess[1])][Integer.parseInt(guess[2])] < 0){
+                            writerB.writeUTF("INVALID");
+                        } else if(boardA[Integer.parseInt(guess[1])][Integer.parseInt(guess[2])] == 0){
+                            writerB.writeUTF("MISS");
+                        }
                     }
                     //is the player readied up?
                     switch(messageB){

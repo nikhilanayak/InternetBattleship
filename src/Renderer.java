@@ -29,6 +29,18 @@ public class Renderer extends JPanel {
         double width = this.getWidth() / (double) BOARD_SIZE;
         double height = this.getHeight() / (double) BOARD_SIZE;
 
+        for (int x = 0; x <= BOARD_SIZE; x++) {
+            g.drawLine((int) Math.round(x * width), 0, (int) Math.round(x * width), this.getHeight());
+        }
+
+        g.drawLine((int) this.getWidth() - 1, 0, (int) this.getWidth() - 1, this.getHeight() - 1);
+
+        //drawing lines by height from side to side
+        for (int y = 0; y < BOARD_SIZE; y++) {
+            //need to have a double so the line is more precise
+            g.drawLine(0, (int)Math.round(y * height), this.getWidth(), (int) Math.round(y * height));
+        }
+
 
 
 
@@ -42,14 +54,7 @@ public class Renderer extends JPanel {
             }
         }
 
-        for (int x = 0; x < BOARD_SIZE; x++) {
-            g.drawLine((int) Math.round(x * width), 0, (int) Math.round(x * width), this.getHeight());
-        }
-        //drawing lines by height from side to side
-        for (int y = 0; y < BOARD_SIZE; y++) {
-            //need to have a double so the line is more precise
-            g.drawLine(0, (int) Math.round(y * height), this.getWidth(), (int) Math.round(y * height));
-        }
+
 
         g.setColor(Color.BLACK);
         Graphics2D g2 = (Graphics2D) g;

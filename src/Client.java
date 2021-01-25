@@ -14,15 +14,12 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client implements ActionListener, MouseListener {
-    public static final int WIDTH = 800;
-    public static final int HEIGHT = 800;
+    public static final int WIDTH = 1000;
+    public static final int HEIGHT = 1000;
     ArrayList<Integer> shipLengths = new ArrayList<Integer>();
 
-
-    JTextField guessText = new JTextField("Enter a coordinate (e.g. A1)");
-    JLabel hitBox = new JLabel("Hits: ");
-    JLabel missBox = new JLabel("Misses: ");
-
+    int lastGuessX = 0;
+    int lastGuessY = 0;
 
     boolean firstClick = false;
 
@@ -35,14 +32,18 @@ public class Client implements ActionListener, MouseListener {
     DataInputStream in;
 
     Renderer panel = new Renderer();
+    GuessingPanel guessingPanel = new GuessingPanel();
 
     // Java Swing components
     JFrame frame;
+    
 
     JButton readyUpButton = new JButton("Ready Up");
     boolean readiedUp = false;
 
     Container west;
+    Container center;
+    Container grids;
 
     enum GameState {
         READYUP,
@@ -73,13 +74,20 @@ public class Client implements ActionListener, MouseListener {
         frame.setSize(WIDTH, HEIGHT);
         frame.setLayout(new BorderLayout());
         west = new Container();
+        center = new Container();
+
+        GridLayout layout = new GridLayout(1, 2);
+        layout.setHgap(100);
+        grids = new Container();
+        grids.setLayout(layout);
+
         west.setLayout(new GridLayout(4, 1));
         west.add(readyUpButton);
-        west.add(guessText);
-        guessText.setEnabled(false);
-        west.add(hitBox);
-        west.add(missBox);
 
+        grids.add(panel);
+        grids.add(guessingPanel);
+
+        guessingPanel.addMouseListener(this);
 
         shipLengths.add(5);
         shipLengths.add(4);
@@ -90,11 +98,14 @@ public class Client implements ActionListener, MouseListener {
         readyUpButton.addActionListener(this);
         readyUpButton.setPreferredSize(new Dimension(150, 25));
         panel.addMouseListener(this);
+        guessingPanel.addMouseListener(this);
         panel.setSize(300, 300);
         panel.repaint();
 
-        frame.add(panel, BorderLayout.CENTER);
+
+        frame.add(grids, BorderLayout.CENTER);
         frame.add(west, BorderLayout.WEST);
+
 
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -133,16 +144,13 @@ public class Client implements ActionListener, MouseListener {
                 }
             }
         } if(gameState == GameState.BATTLE){
-            if(event.getSource().equals(guessText)){
 
-            }
         }
 
     }
 
     public void guess(){
         JOptionPane.showMessageDialog(frame, "Your Turn!");
-        guessText.setEnabled(true);
     }
 
     /**
@@ -180,10 +188,25 @@ public class Client implements ActionListener, MouseListener {
                             break;
                         case "BATTLE":
                             gameState = GameState.BATTLE;
+                            panel.setEnabled(false);
+                            guessingPanel.setEnabled(false);
                             JOptionPane.showMessageDialog(frame, "Battle!");
                             break;
                         case "YOURTURN":
+                            guessingPanel.setEnabled(true);
                             guess();
+                            break;
+
+                        case "HIT":
+                            System.out.printf("Hit at %d, %d\n", lastGuessX, lastGuessY);
+                            break;
+
+                        case "MISS":
+                            System.out.printf("Miss at %d, %d\n", lastGuessX, lastGuessY);
+                            break;
+
+                        case "INVALID":
+                            System.out.printf("You've Already Hit %d, %d", lastGuessX, lastGuessY);
                             break;
 
                     }
@@ -224,6 +247,9 @@ public class Client implements ActionListener, MouseListener {
      */
     @Override
     public void mousePressed(MouseEvent e) {
+
+
+
         if (gameState == GameState.SETSHIPS) {
 
             if (!firstClick) {
@@ -231,7 +257,7 @@ public class Client implements ActionListener, MouseListener {
                 startingY = Math.min(panel.cells[0].length - 1, (int) (e.getY() / (panel.getHeight() / Renderer.BOARD_SIZE)));
 
                 if(panel.cells[startingX][startingY]){
-                    JOptionPane.showMessageDialog(frame, "Invalid - Add another ship of length: " + shipLengths.toString());
+                    JOptionPane.showMessageDialog(frame, "Invalid (Ships Overlapping) - Add another ship of length: " + shipLengths.toString());
                 } else{
                     panel.cells[startingX][startingY] = true;
                     firstClick = true;
@@ -251,16 +277,18 @@ public class Client implements ActionListener, MouseListener {
                         if (rectangle.intersects(shipToAdd)) {
                             isValid = false;
                             panel.cells[startingX][startingY] = false;
-                            JOptionPane.showMessageDialog(frame, "Invalid - Add another ship of length: " + shipLengths.toString());
+                            JOptionPane.showMessageDialog(frame, "Invalid (Ships Overlapping) - Add another ship of length: " + shipLengths.toString());
                         }
                     }
 
                     if (isValid) {
-                        shipLengths.remove((Integer) Math.abs(endingX - startingX + 1));
+
+                        shipLengths.remove(shipLengths.indexOf(Math.abs(endingX - startingX) + 1));
+                        System.out.println(Math.abs(endingX - startingX ) + 1);
                         for (int i = Math.min(endingX, startingX); i <= Math.max(endingX, startingX); i++) {
                             panel.cells[i][endingY] = true;
                             try {
-                                out.writeUTF("- " + i + " " + endingY + " " +  Math.abs(endingX - startingX + 1));
+                                out.writeUTF("- " + i + " " + endingY + " " +  Math.abs(endingX - startingX) + 1);
                             } catch (IOException ioException) {
                                 ioException.printStackTrace();
                             }
@@ -278,30 +306,33 @@ public class Client implements ActionListener, MouseListener {
                         if (rectangle.intersects(shipToAdd)) {
                             isValid = false;
                             panel.cells[startingX][startingY] = false;
-                            JOptionPane.showMessageDialog(frame, "Invalid - Add another ship of length: " + shipLengths.toString());
+                            JOptionPane.showMessageDialog(frame, "Invalid(Ships Overlapping) - Add another ship of length: " + shipLengths.toString());
                         }
                     }
 
                     if (isValid) {
-                        shipLengths.remove((Integer) Math.abs(endingY - startingY + 1));
+                        shipLengths.remove(shipLengths.indexOf( Math.abs(endingY - startingY) + 1));
+
                         for (int i = Math.min(endingY, startingY); i <= Math.max(endingY, startingY); i++) {
                             panel.cells[endingX][i] = true;
                             try {
-                                out.writeUTF("- " + endingX + " " + i + " " +  Math.abs(endingY - startingY + 1));
+                                out.writeUTF("- " + endingX + " " + i + " " +  Math.abs(endingY - startingY) + 1);
                             } catch (IOException ioException) {
                                 ioException.printStackTrace();
                             }
                         }
                         frame.repaint();
-                        if (!shipLengths.isEmpty())
+                        if (!shipLengths.isEmpty()) {
                             JOptionPane.showMessageDialog(frame, "Add another ship of length: " + shipLengths.toString());
+                        }
                         panel.shipPositions.add(shipToAdd);
                     }
 
                 } else {
                     panel.cells[startingX][startingY] = false;
-                    if (!shipLengths.isEmpty())
-                        JOptionPane.showMessageDialog(frame, "Invalid - Add another ship of length: " + shipLengths.toString());
+                    if (!shipLengths.isEmpty()) {
+                        JOptionPane.showMessageDialog(frame, "Invalid(Not Straight Ship) - Add another ship of length: " + shipLengths.toString());
+                    }
                 }
 
                 firstClick = false;
@@ -315,6 +346,23 @@ public class Client implements ActionListener, MouseListener {
                 }
             }
             frame.repaint();
+        }
+
+        if (gameState == GameState.BATTLE) {
+            int guessX = Math.min(guessingPanel.cells.length - 1, (int) (e.getX() / (guessingPanel.getWidth() / GuessingPanel.BOARD_SIZE)));
+            int guessY = Math.min(guessingPanel.cells[0].length - 1, (int) (e.getY() / (guessingPanel.getHeight() / GuessingPanel.BOARD_SIZE)));
+
+
+            String message = "+ " + guessX + " " + guessY;
+            try {
+                out.writeUTF(message);
+                lastGuessX = guessX;
+                lastGuessY = guessY;
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+
+
         }
     }
 
