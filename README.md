@@ -1,5 +1,10 @@
 # Internet Battleship
 
+
+[![forthebadge](https://forthebadge.com/images/badges/made-with-crayons.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/mom-made-pizza-rolls.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)](https://forthebadge.com)
+
 ## What Is Internet Battleship
 Internet battleship is an implementation of the popular board game battleship, written in Java using Java Swing for rendering and Java sockets for networking.
 
