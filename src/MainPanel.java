@@ -5,25 +5,39 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class Renderer extends JPanel {
+/**
+ * The panel drawn on the left side of the screen that shows your ships.
+ * @author Nikhil Nayak
+ * @author Kyle Zhou
+ * @version 1.0
+ */
+public class MainPanel extends JPanel{
+    /**
+     * The size of the board in cells
+     */
     public static final int BOARD_SIZE = 10;
+
+    /**
+     * A set of rectangles that represents all the ships the client has placed.
+     */
     ArrayList<Rectangle> shipPositions = new ArrayList<>();
 
+    /**
+     * An array that holds the state of all of the cells on.
+     */
+    int[][] cells = new int[BOARD_SIZE][BOARD_SIZE];
 
 
-
-    boolean[][] cells = new boolean[BOARD_SIZE][BOARD_SIZE];
-
-    public Renderer() {
-
-    }
-
+    /**
+     * Calls the default paintComponent and draws lines and cells depending on the state of <code>cells</code>
+     * @param g the <code>Graphics</code> object used to draw on the JPanel
+     */
     @Override
     public void paintComponent(Graphics g) {
 
         super.paintComponent(g);
 
-        //drawing lines by width from top to bottom
+        //drawing the grid layout
         g.setColor(Color.BLACK);
 
         double width = this.getWidth() / (double) BOARD_SIZE;
@@ -43,29 +57,30 @@ public class Renderer extends JPanel {
 
 
 
-
-        g.setColor(Color.GRAY);
-
+        //coloring in ships gray and hits as red
         for(int x = 0; x < BOARD_SIZE; x++) {
             for (int y = 0; y < BOARD_SIZE; y++) {
-                if (cells[x][y]) {
-                    g.fillRect((int) Math.round(x * width), (int) Math.round(y * height), (int) Math.round(width + 1), (int) Math.round(height + 1));
+                if (cells[x][y] == 1) {
+                    g.setColor(Color.GRAY);
                 }
+                else if(cells[x][y] == 2){
+                    g.setColor(Color.RED);
+                }
+                else{
+                    continue;
+                }
+                g.fillRect((int) Math.round(x * width), (int) Math.round(y * height), (int) Math.round(width + 1), (int) Math.round(height + 1));
             }
         }
 
 
-
+        //going through the ships and boxing them as together
         g.setColor(Color.BLACK);
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(3));
         for(int i = 0; i < shipPositions.size(); i++){
             g2.drawRect((int) Math.round(shipPositions.get(i).x * width), (int) Math.round(shipPositions.get(i).y * height), (int) Math.round((width) * shipPositions.get(i).width) , (int) Math.round((height)* shipPositions.get(i).height));
         }
-
-
-
-
     }
 
 
