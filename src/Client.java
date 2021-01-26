@@ -192,7 +192,23 @@ public class Client implements ActionListener, MouseListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
 
-        connect("0.tcp.ngrok.io", 10573);
+        String ipAddr = (String)JOptionPane.showInputDialog(frame, "Please Input An IP Address.", "IP Input", JOptionPane.PLAIN_MESSAGE, null, null, "");
+
+
+        Integer port = null;
+        while(port == null){
+            String portString = (String)JOptionPane.showInputDialog(frame, "Please Input a Port.", "Port Input", JOptionPane.PLAIN_MESSAGE, null, null, "");
+            try{
+                port = Integer.parseInt(portString);
+            }
+            catch (NumberFormatException nfe){
+
+            }
+        }
+
+
+
+        connect(ipAddr, 10573);
         run();
     }
 
