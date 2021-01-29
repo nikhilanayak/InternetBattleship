@@ -28,6 +28,7 @@ git clone https://github.com/nikhilAnayak/InternetBattleship.git
     Once both players have connected to the server, they will see the main GUI. On the left, there is a button prompting the players to ready up. On the right, there should be 2 grids. The grid on the left is where your battleships go, and the grid on the right is where you put your guesses. Both players can now ready up.
 
 3. Placing Ships
+
     Once both players are ready, they will be prompted to place their ships. Each player has 4 ships, of length 2, 3, 4, and 5. To place a ship, press a starting cell on the left grid. Then, press another cell on the left grid. If the cells form a vertical/horizontal line and are a valid length, that ship will be placed.
 
 4. Playing The Game
