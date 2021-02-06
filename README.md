@@ -11,7 +11,7 @@ Internet battleship is an implementation of the popular board game battleship, w
 ## Installation
 1. Clone This Repository or use the zip file provided to you.
 ```
-git clone https://github.com/nikhilAnayak/InternetBattleship.git
+git clone https://github.com/indianboy6/InternetBattleship.git
 ```
 
 2. Run server. In your IDE(Preferrably IntelliJ or Eclipse), open the folder as a project and run `Server.java`
